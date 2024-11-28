@@ -44,7 +44,7 @@ class User(db.Model):
 
 class NameForm(FlaskForm):
     name = StringField('What is your name?', validators=[DataRequired()])
-    options = SelectField(
+    role = SelectField(
         'Role?:',
         choices=[
                 ('', 'Selecione uma das opções'),
