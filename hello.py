@@ -48,9 +48,9 @@ class NameForm(FlaskForm):
         'Role?:',
         choices=[
                 ('', 'Selecione uma das opções'),
-                ('administrator', 'Administrator'),
-                ('moderator', 'Moderator'),
-                ('user', 'User')
+                ('Administrator', 'Administrator'),
+                ('Moderator', 'Moderator'),
+                ('User', 'User')
             ]
     )
     submit = SubmitField('Submit')
@@ -74,20 +74,30 @@ def internal_server_error(e):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = NameForm()
-    user_all = User.query.all();
-    print(user_all);
+    users = User.query.all()
+    roles = Role.query.all()
+
+    user_by_role = []
+    for role in roles:
+        obj_rel = {
+            'role': role.name,
+            'users': role.users.all()
+        }
+        user_by_role.append(obj_rel)
+
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.name.data).first()
         if user is None:
-            user_role = Role.query.filter_by(name='User').first();
-            user = User(username=form.name.data, role=user_role);
+            role = Role.query.filter_by(name=form.role.data).first()
+            user = User(username=form.name.data, role=role)
             db.session.add(user)
             db.session.commit()
             session['known'] = False
+            flash('You were successfully registered.')
         else:
             session['known'] = True
+            flash('Welcome back!')
         session['name'] = form.name.data
         return redirect(url_for('index'))
     return render_template('index.html', form=form, name=session.get('name'),
-                           known=session.get('known', False),
-                           user_all=user_all);
+                           known=session.get('known', False), users=users, user_by_role=user_by_role)
